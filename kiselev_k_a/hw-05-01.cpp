@@ -1,11 +1,18 @@
-#include<iostream>
-#include<cmath>
-#include<vector>
-#include<map>
-#include<string>
-#include<fstream>
+#include <iostream>
+#include <cmath>
+#include <iomanip>
+#include <vector>
+#include <string>
 #include <algorithm>
-#include<set>
+#include <utility>
+#include <set>
+#include <fstream>
+#include <deque>
+#include <queue>
+#include <map>
+
+typedef long long ll;
+typedef long double ld;
 
 const double eps = 1e-3;
 
@@ -27,7 +34,7 @@ long double s(long double x) {
 	long double cur_sum = 0;
 	int i = 0;
 	long double s_i = f(x, i);
-	while (std::abs(cur_sum) > eps) {
+	while (std::abs(s_i) > eps) {
 		cur_sum += s_i;
 		i += 1;
 		s_i = f(x, i);
