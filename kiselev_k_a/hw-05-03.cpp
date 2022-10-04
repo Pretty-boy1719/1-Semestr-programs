@@ -28,7 +28,7 @@ long double s(long double x) {
 	long double cur_sum = 0;
 	int i = 0;
 	long double s_i = f(x, i);
-	while (std::abs(cur_sum) > eps) {
+	while (std::abs(s_i) > eps) {
 		cur_sum += s_i;
 		i += 1;
 		s_i = f(x, i);
