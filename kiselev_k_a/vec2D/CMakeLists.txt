@@ -1,0 +1,1 @@
+﻿add_library(vec2D vec2D.cpp vec2D.hpp)
