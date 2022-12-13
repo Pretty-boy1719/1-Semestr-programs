@@ -9,10 +9,11 @@ struct State {
 	Rdec2D r_stable{ 0,0 };
 	Rdec2D v{ 0,0 };
 	Rdec2D a{ 0,0 };
-	double m = 1;
-	double k = 1;
+
+	double m = 1.0;
+	double k = 1.0;
 	double u = 1.0;
-	double dt = 0.0001;
+	double dt = 0.001;
 	double g = 9.8;
 };
 
@@ -21,32 +22,40 @@ State& GetModel(State& model) {
 	return model;
 }
 
-double ReverseDirection(double a) {
-	return a <= 0 ? 1 : -1;
+Rdec2D NormV(const Rdec2D& v) {
+	if (Norm(v) == 0) return { 0,0 };
+	return (v / Norm(v));
 }
 
-double SpringForce(const State& model) {
-	return model.k * (model.r.x - model.r_stable.x) * (-1);
+Rdec2D SpringForce(const State& model) {
+	Rdec2D force = (model.r - model.r_stable) * (model.k * (-1.0));
+	return force;
 }
 
-double FrictionForce(const State& model) {
-	double force = 0;
-	if (std::abs(model.v.x) < model.dt) force = std::min(model.u * model.m * model.g, std::abs(SpringForce(model)));
-	else force = model.u * model.m * model.g;
-	force *= ReverseDirection(model.v.x);
+Rdec2D FrictionForce(const State& model) {
+	Rdec2D force{ 0,0 };
+	if (Norm(model.v) < model.dt*0.1) {
+		if (model.u * model.m * model.g < Norm(SpringForce(model)))
+			force = NormV(model.v) * model.u * model.m * model.g * (-1);
+		else force = SpringForce(model)*(-1);
+	}
+	else {
+		force = NormV(model.v) * model.u * model.m * model.g * (-1);
+	}
+
 	return force;
 }
 
 State& Boost(State& model) {
-	model.a.x = ((SpringForce(model) + FrictionForce(model)) / model.m);
+	model.a = ((SpringForce(model) + FrictionForce(model)) / model.m);
 	return model;
 }
 
 State& Speed( State& model, std::vector<Rdec2D>& pivot_point) {
-	if (model.v.x * (model.v.x + model.a.x * model.dt) < 0)
+	if (NormV(model.v) != NormV(model.v + model.a * model.dt))
 		pivot_point.push_back(model.r);
 
-	model.v.x += model.a.x * model.dt;
+	model.v += model.a * model.dt;
 	return model;
 }
 
@@ -65,7 +74,7 @@ State& Simulation(State& model, std::ostream& f) {
 
 	while (!is_Stopped) {
 		Boost(model);
-		model.r.x += (model.v.x * model.dt + model.a.x * model.dt * model.dt);
+		model.r += (model.v * model.dt + model.a * model.dt * model.dt);
 		Speed(model, pivot_point);
 
 
@@ -74,7 +83,7 @@ State& Simulation(State& model, std::ostream& f) {
 
 		PrintState(model, f, count);
 
-		if (model.a.x==0 && model.v.x < 0.001) {
+		if (Norm(model.a) == 0 && Norm(model.v) < model.dt) {
 			is_Stopped = true;
 		}
 	}
@@ -96,7 +105,7 @@ int main() {
 
 	std::ofstream f("output.txt");
 	f << std::fixed;
-	f<< std::setprecision(3);
+	f << std::setprecision(3);
 
 	State start_model;
 
@@ -119,3 +128,4 @@ int main() {
 	return 0;
 }
 
+	
