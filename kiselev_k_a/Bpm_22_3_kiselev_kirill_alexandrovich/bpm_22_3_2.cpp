@@ -23,4 +23,6 @@ int main() {
 	}
 
 	std::cout << answer;
+	
+	return 0;
 }
